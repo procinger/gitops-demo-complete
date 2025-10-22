@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterAnalysisTemplate
+metadata:
+  name: complete-test
+spec:
+  metrics:
+    - name: frontend-test
+      count: 2
+      interval: 10s
+      failureLimit: 0
+      provider:
+        job:
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: frontend-test
+                    image: docker.io/curlimages/curl:8.16.0
+                    command:
+                      - /bin/sh
+                      - -c
+                      - |
+                        (curl --insecure -L -o /dev/null -s -w %{http_code} \
+                        http://gitops-demo-frontend.gitops-demo-frontend-dev.svc.cluster.local | grep ${HTTP_SUCCESS_CODE}) || (echo "http test failed. expected ${HTTP_SUCCESS_CODE}"; exit 1)
+                    imagePullPolicy: IfNotPresent
+                    env:
+                      - name: HTTP_SUCCESS_CODE
+                        value: "200"
+                restartPolicy: Never
+            backoffLimit: 1

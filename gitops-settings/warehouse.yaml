@@ -1,0 +1,25 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: warehouse
+spec:
+  interval: "10m0s"
+  subscriptions:
+    - image:
+        repoURL: ghcr.io/procinger/gitops-demo-frontend
+        imageSelectionStrategy: SemVer
+        allowTags: '^v\d+\.\d+\.\d+$'
+        constraint: '>= 1.0.0'
+    - image:
+        repoURL: ghcr.io/procinger/gitops-demo-backend
+        imageSelectionStrategy: SemVer
+        allowTags: '^v\d+\.\d+\.\d+$'
+        constraint: '>= 1.0.0'
+    - git:
+        repoURL: https://github.com/procinger/gitops-demo-complete.git
+        commitSelectionStrategy: SemVer
+        allowTags: '^v\d+\.\d+\.\d+$'
+        semverConstraint: '>= 1.0.0'
+  freightCreationPolicy: Automatic
+  freightCreationCriteria:
+    expression: imageFrom('ghcr.io/procinger/gitops-demo-frontend').Tag == imageFrom('ghcr.io/procinger/gitops-demo-backend').Tag == commitFrom('https://github.com/procinger/gitops-demo-complete.git').Tag
